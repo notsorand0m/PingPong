@@ -4,6 +4,22 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define WIDTH 1050
+#define HEIGHT 700
+
+#define BALL_WIDTH_HEIGHT 20
+
+#define PAD_MOVEMENT_SPEED 40
+
+#define LEFT_PAD_W 10
+#define LEFT_PAD_H 150
+
+#define RIGHT_PAD_W 10
+#define RIGHT_PAD_H 150
+
+#define RAND_X 8
+#define RAND_Y 6
+
 void LoadGame()
 {
     SDL_Window *window;
@@ -13,31 +29,29 @@ void LoadGame()
     SDL_Rect right_line;
 
     SDL_Rect ball;
-    ball.x = (900/2) - (20/2);
-    ball.y = (650/2) - (20/2);
-    ball.w = ball.h = 20;
+    ball.x = (WIDTH/2) - (BALL_WIDTH_HEIGHT/2);
+    ball.y = (HEIGHT/2) - (BALL_WIDTH_HEIGHT/2);
+    ball.w = ball.h = BALL_WIDTH_HEIGHT;
 
-    int left_line_y = 250;
-    int left_line_x = 80;
+    int left_line_y = HEIGHT/2.6;
+    int left_line_x = WIDTH/8;
 
-    int right_line_y = 250;
-    int right_line_x = 820;
-
-    bool bumped_left = false;
-    bool bumped_right = false;
+    int right_line_y = HEIGHT/2.6;
+    int right_line_x = WIDTH - WIDTH/8;
 
     float bX = ball.x;
     float bY = ball.y;
 
-    int counter = 0;
+    bool bumped_left;
+    bool bumped_right;
 
     srand(time(0));
 
-    float speedX = (rand() % 10) - 1;
-    float speedY = (rand() % 8) - 1;
+    float speedX = (rand() % RAND_X) - 1;
+    float speedY = (rand() % RAND_Y) - 1;
 
-    if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
-    if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
+    if(speedX >= -2.0f && speedX < 2.0f) speedX = 3.0f;
+    if(speedY >= -2.0f && speedY < 2.0f) speedY = -3.0f;
 
     speedX /= 100.0f;
     speedY /= 100.0f;   
@@ -55,8 +69,8 @@ void LoadGame()
     window = SDL_CreateWindow("Pong Game",
                                SDL_WINDOWPOS_CENTERED,
                                SDL_WINDOWPOS_CENTERED,
-                               900,
-                               650,
+                               WIDTH,
+                               HEIGHT,
                                SDL_WINDOW_SHOWN);
 
     if (window == NULL) {
@@ -75,9 +89,22 @@ void LoadGame()
     SDL_Event event;
     bool var = true;
     bool moving = true;
+
+    // MAKE IT WORK
+    // if(ball.y < 450)
+    // {
+    //     bumped_right = true;
+    //     bumped_left = false;
+    // }
+    // if(ball.y > 450)
+    // {
+    //     bumped_left = true;
+    //     bumped_right = false;
+    // }
+
     while (moving) 
         {
-            if(ball.x < 400)
+            if(ball.x < WIDTH / 2)
             {
                 
                     while (SDL_PollEvent(&event) != 0) 
@@ -96,15 +123,14 @@ void LoadGame()
                                 // Make it so when the user clicks any button the games start SDL_KEYDOWN
 
                                 case SDLK_DOWN:
-                                    left_line_y += 10;
+                                    left_line_y += PAD_MOVEMENT_SPEED;
                                     break;
 
                                 case SDLK_UP:
-                                    left_line_y -= 10;
+                                    left_line_y -= PAD_MOVEMENT_SPEED;
                                     break;
 
                                 case SDLK_r:
-                                    LoadGame();
                                     SDL_DestroyRenderer(renderer);
                                     SDL_DestroyWindow(window);
                                     SDL_Quit();
@@ -115,7 +141,7 @@ void LoadGame()
                         }
                     }
             }
-            else if(ball.x > 400)
+            else if(ball.x > WIDTH / 2)
             {
                 while (SDL_PollEvent(&event) != 0) 
                     {
@@ -129,19 +155,16 @@ void LoadGame()
                         {
                             switch (event.key.keysym.sym) 
                             {
-                                //TO DO
-                                // Make it so when the user clicks any button the games start SDL_KEYDOWN
 
                                 case SDLK_DOWN:
-                                    right_line_y += 10;
+                                    right_line_y += PAD_MOVEMENT_SPEED;
                                     break;
 
                                 case SDLK_UP:
-                                    right_line_y -= 10;
+                                    right_line_y -= PAD_MOVEMENT_SPEED;
                                     break;
 
                                 case SDLK_r:
-                                    LoadGame();
                                     SDL_DestroyRenderer(renderer);
                                     SDL_DestroyWindow(window);
                                     SDL_Quit();
@@ -154,56 +177,58 @@ void LoadGame()
             }
 
             
-
-
-            bool left = false;
             bumped_left = SDL_HasIntersection(&ball, &left_line);
             bumped_right = SDL_HasIntersection(&ball, &right_line);
-            bool left_bump = false;
-            bool right_bump = false;
-            
-            // Add high score
-            // Add counter of hits
-            // Fix the colliding with the left and right line with the ball
 
-            // Add aesthethics *if you have time
-            // Organize the code *if you have time
             
             if(!bumped_left || !bumped_right)
             {
+                
                 bX -= speedX;
                 bY += speedY;
 
                 ball.x = bX;
-                ball.y = bY;
+                ball.y = -bY;
 
-                // FIX THESE VALUES
-                //if(ball.y <= 250 || ball.y >= 1000)
-                //{
-                //  speedY = -speedY;
-                    //speedX = -speedX;
+            }
 
-                    //speedX = (rand() % 7) - 1;
-                    //speedY = (rand() % 3) - 1;
+            if(ball.y <= 0)
+            {
+                    ball.y = 0;
 
-                    //if(speedX >= -0.01f && speedX <= 0.01f) speedX = 1.0f;
-                    //if(speedY >= -0.01f && speedY <= 0.01f) speedY = -1.0f;
+                    speedY = (rand() % RAND_Y) - 1;
 
-                    //speedX /= 100.0f;
-                    //speedY /= 100.0f;
-                //}
-                
+                    speedY /= 100.0f;
+
+                    speedY = -speedY;
+
+                    ball.y = bY;
+            }   
+
+            if(ball.y >= HEIGHT)
+            {
+                    ball.y = HEIGHT;
+
+                    speedY = (rand() % RAND_Y) - 1;
+
+                    speedY /= -100.0f;
+
+                    speedY = -speedY;
+
+                    ball.y = bY;
             }
                     
             if(bumped_left)
             {
-                left_bump = true;
+                bumped_left = true;
+                bumped_right = false;
+                right_line_y = HEIGHT / 2.6;
                 srand(time(0));
                 speedY = -speedY;
                 speedX = -speedX;
 
-                speedX = (rand() % 10) - 1;
-                speedY = (rand() % 8) - 1;
+                speedX = (rand() % RAND_X) - 1;
+                speedY = (rand() % RAND_Y) - 1;
 
                 if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
                 if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
@@ -221,10 +246,13 @@ void LoadGame()
 
             if(bumped_right)
             {
+                bumped_right = true;
+                bumped_left = false;
+                left_line_y = HEIGHT / 2.6;
                 srand(time(0));
 
-                speedX = (rand() % 10) - 1;
-                speedY = (rand() % 8) - 1;
+                speedX = (rand() % RAND_X) - 1;
+                speedY = (rand() % RAND_Y) - 1;
 
                 if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
                 if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
@@ -239,9 +267,27 @@ void LoadGame()
                 ball.y = bY + 1;
 
             }
-            
-            if(ball.x <= -30 || ball.x >= 930)
+
+            if(left_line_y > HEIGHT - 125)
             {
+                left_line_y = HEIGHT - 125;
+            }
+            if(left_line_y < 0)
+            {
+                left_line_y = 0;
+            }
+            if(right_line_y > HEIGHT - 125)
+            {
+                right_line_y = HEIGHT - 125;
+            }
+            if(right_line_y < 0)
+            {
+                right_line_y = 0;
+            }
+            
+            if(ball.x <= -30 || ball.x >= WIDTH - 30)
+            {
+
                 printf("You lost");
 
                 SDL_DestroyRenderer(renderer);
@@ -250,39 +296,6 @@ void LoadGame()
 
                 break;
                                 
-            }
-            if(ball.y <= 20)
-            {
-                    ball.y = 20;
-
-                    srand(time(0));
-
-                    speedY = (rand() % 8) - 1;
-
-                    if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                    speedY /= 100.0f;
-
-                    speedY = speedY;
-
-                    ball.y = bY - 1;
-            }   
-
-            if(ball.y >= 630)
-            {
-                    ball.y = 630;
-
-                    srand(time(0));
-
-                    speedY = (rand() % 8) - 1;
-
-                    if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                    speedY /= 100.0f;
-
-                    speedY = speedY;
-
-                    ball.y = bY - 1;
             }
 
                 // Clear screen with a background color (optional)
@@ -295,15 +308,15 @@ void LoadGame()
                 // Draw the left pad
                 left_line.x = left_line_x;
                 left_line.y = left_line_y;
-                left_line.w = 10;
-                left_line.h = 150;
+                left_line.w = LEFT_PAD_W;
+                left_line.h = LEFT_PAD_H;
                 SDL_RenderFillRect(renderer, &left_line);
 
                 // Draw the right pad
                 right_line.x = right_line_x;
                 right_line.y = right_line_y;
-                right_line.w = 10;
-                right_line.h = 150;
+                right_line.w = RIGHT_PAD_W;
+                right_line.h = RIGHT_PAD_H;
                 SDL_RenderFillRect(renderer, &right_line);
 
                 // Draw the ball rectangle
@@ -317,208 +330,6 @@ void LoadGame()
             
             
         }
-    
-
-    if(SDL_HasIntersection(&ball, &right_line))
-    {
-        bool moving = true;
-        while (moving) 
-        {
-
-            while (SDL_PollEvent(&event) != 0) 
-            {
-
-                if (event.type == SDL_QUIT)
-                {
-                    moving = false;
-                }
-                
-                if (event.type == SDL_KEYDOWN)
-                {
-                    switch (event.key.keysym.sym) 
-                    {
-                        //TO DO
-                        // Make it so when the user clicks any button the games start SDL_KEYDOWN
-
-                        case SDLK_DOWN:
-                            right_line_y += 10;
-                            break;
-
-                        case SDLK_UP:
-                            right_line_y -= 10;
-                            break;
-                        case SDLK_r:
-                            LoadGame();
-                            SDL_DestroyRenderer(renderer);
-                            SDL_DestroyWindow(window);
-                            SDL_Quit();
-                            break;
-                    }
-
-                }
-            }
-
-            bool left = false;
-            bumped_left = SDL_HasIntersection(&ball, &left_line);
-            bumped_right = SDL_HasIntersection(&ball, &right_line);
-            bool left_bump = false;
-            bool right_bump = false;
-            
-            // Add high score
-            // Add counter of hits
-            // Fix the colliding with the left and right line with the ball
-
-            // Add aesthethics *if you have time
-            // Organize the code *if you have time
-
-
-            if(!bumped_left && !bumped_right)
-            {
-                bX -= speedX;
-                bY += speedY;
-
-                ball.x = bX;
-                ball.y = bY;
-
-                // FIX THESE VALUES
-            //if(ball.y <= 250 || ball.y >= 1000)
-            //{
-              //  speedY = -speedY;
-                //speedX = -speedX;
-
-                //speedX = (rand() % 7) - 1;
-                //speedY = (rand() % 3) - 1;
-
-                //if(speedX >= -0.01f && speedX <= 0.01f) speedX = 1.0f;
-                //if(speedY >= -0.01f && speedY <= 0.01f) speedY = -1.0f;
-
-                //speedX /= 100.0f;
-                //speedY /= 100.0f;
-            //}
-                
-            }
-                    
-            if(bumped_left)
-            {
-                srand(time(0));
-                speedY = -speedY;
-                speedX = -speedX;
-
-                speedX = (rand() % 10) - 1;
-                speedY = (rand() % 8) - 1;
-
-                if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
-                if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                speedX /= 100.0f;
-                speedY /= 100.0f;
-
-                speedX = -speedX;
-                speedY = -speedY;
-
-                ball.x = bX + 1;
-                ball.y = bY + 1;
-                
-            }
-
-            if(bumped_right)
-            {
-                srand(time(0));
-                speedY = -speedY;
-                speedX = -speedX;
-
-                speedX = (rand() % 10) - 1;
-                speedY = (rand() % 8) - 1;
-
-                if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
-                if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                speedX /= -100.0f;
-                speedY /= -100.0f;
-
-                speedX = -speedX;
-                speedY = -speedY;
-
-                ball.x = bX + 1;
-                ball.y = bY + 1;
-
-            }
-            
-            if(ball.x <= -30 || ball.x >= 930)
-            {
-                printf("You lost");
-
-                LoadGame();
-                                
-            }
-            if(ball.y <= 20)
-            {
-                    ball.y = 20;
-
-                    srand(time(0));
-
-                    speedY = (rand() % 8) - 1;
-
-                    if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                    speedY /= 100.0f;
-
-                    speedY = -speedY;
-
-                    ball.y = bY + 1;
-            }
-
-            if(ball.y >= 600)
-            {
-                    ball.y = 600;
-
-                    srand(time(0));
-
-                    speedY = (rand() % 8) - 1;
-
-                    if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
-
-                    speedY /= 100.0f;
-
-                    speedY = -speedY;
-
-                    ball.y = bY + 1;
-            }
-                 
-
-                // Clear screen with a background color (optional)
-                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);  // Black
-                SDL_RenderClear(renderer);
-
-                // Set the color for the rectangle
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red
-
-                // Draw the left pad
-                left_line.x = left_line_x;
-                left_line.y = left_line_y;
-                left_line.w = 10;
-                left_line.h = 150;
-                SDL_RenderFillRect(renderer, &left_line);
-
-                // Draw the right pad
-                right_line.x = right_line_x;
-                right_line.y = right_line_y;
-                right_line.w = 10;
-                right_line.h = 150;
-                SDL_RenderFillRect(renderer, &right_line);
-
-                // Draw the ball rectangle
-                SDL_RenderFillRect(renderer, &ball);
-
-                // Present the renderer to the screen
-                SDL_RenderPresent(renderer);
-
-                // Delay to control the frame rate (optional)
-                SDL_Delay(8.33); // ~120 FPS
-            
-            
-        }
-    }
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
