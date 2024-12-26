@@ -17,8 +17,14 @@
 #define RIGHT_PAD_W 10
 #define RIGHT_PAD_H 150
 
-#define RAND_X 8
-#define RAND_Y 6
+#define RAND_X 10
+#define RAND_Y 11
+
+#define RAND_LIMIT_X 5.0f
+#define RAND_LIMIT_Y 6.0f
+
+#define SCORE_W_PER_HIT 15
+#define SCORE_H_PER_HIT 15
 
 void LoadGame()
 {
@@ -45,18 +51,27 @@ void LoadGame()
     bool bumped_left;
     bool bumped_right;
 
+    int left_counter = 0;
+    int right_counter = 0;
+
+    SDL_Rect score;
+    score.w = 0;
+    score.h = 0;
+    score.y = HEIGHT/2 - score.h/2;
+    score.x = WIDTH/2 - score.w/2;
+    Uint8 a;
+    a = 65;
+
     srand(time(0));
 
     float speedX = (rand() % RAND_X) - 1;
     float speedY = (rand() % RAND_Y) - 1;
 
-    if(speedX >= -2.0f && speedX < 2.0f) speedX = 3.0f;
-    if(speedY >= -2.0f && speedY < 2.0f) speedY = -3.0f;
+    if(speedX >= -RAND_LIMIT_X && speedX < RAND_LIMIT_X) speedX = RAND_LIMIT_X + 1;
+    if(speedY >= -RAND_LIMIT_Y && speedY < RAND_LIMIT_Y) speedY = RAND_LIMIT_Y - 1;
 
     speedX /= 100.0f;
     speedY /= 100.0f;   
-
-    // SDL_Event event;
 
     // Initialize SDL
     int result = SDL_Init(SDL_INIT_EVERYTHING);
@@ -90,18 +105,6 @@ void LoadGame()
     bool var = true;
     bool moving = true;
 
-    // MAKE IT WORK
-    // if(ball.y < 450)
-    // {
-    //     bumped_right = true;
-    //     bumped_left = false;
-    // }
-    // if(ball.y > 450)
-    // {
-    //     bumped_left = true;
-    //     bumped_right = false;
-    // }
-
     while (moving) 
         {
             if(ball.x < WIDTH / 2)
@@ -119,8 +122,6 @@ void LoadGame()
                         {
                             switch (event.key.keysym.sym) 
                             {
-                                //TO DO
-                                // Make it so when the user clicks any button the games start SDL_KEYDOWN
 
                                 case SDLK_DOWN:
                                     left_line_y += PAD_MOVEMENT_SPEED;
@@ -183,13 +184,14 @@ void LoadGame()
             
             if(!bumped_left || !bumped_right)
             {
-                
+                left_counter = 0;
+                right_counter = 0;
+
                 bX -= speedX;
                 bY += speedY;
 
                 ball.x = bX;
                 ball.y = -bY;
-
             }
 
             if(ball.y <= 0)
@@ -220,6 +222,15 @@ void LoadGame()
                     
             if(bumped_left)
             {
+                left_counter += 1;
+                if(score.h < HEIGHT && score.w < WIDTH && left_counter == 1)
+                {
+                    score.h += SCORE_H_PER_HIT;
+                    score.w += SCORE_W_PER_HIT;
+                    score.y = HEIGHT/2 - score.h/2;
+                    score.x = WIDTH/2 - score.w/2;
+                }
+
                 bumped_left = true;
                 bumped_right = false;
                 right_line_y = HEIGHT / 2.6;
@@ -230,8 +241,8 @@ void LoadGame()
                 speedX = (rand() % RAND_X) - 1;
                 speedY = (rand() % RAND_Y) - 1;
 
-                if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
-                if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
+                if(speedX >= -RAND_LIMIT_X && speedX <= RAND_LIMIT_X) speedX = RAND_LIMIT_X + 1;
+                if(speedY >= -RAND_LIMIT_Y && speedY <= RAND_LIMIT_Y) speedY = RAND_LIMIT_Y - 1;
 
                 speedX /= 100.0f;
                 speedY /= 100.0f;
@@ -246,6 +257,15 @@ void LoadGame()
 
             if(bumped_right)
             {
+                right_counter += 1;
+                if(score.h < HEIGHT && score.w < WIDTH && right_counter == 1)
+                {
+                    score.h += SCORE_H_PER_HIT;
+                    score.w += SCORE_W_PER_HIT;
+                    score.y = HEIGHT/2 - score.h/2;
+                    score.x = WIDTH/2 - score.w/2;
+                }
+
                 bumped_right = true;
                 bumped_left = false;
                 left_line_y = HEIGHT / 2.6;
@@ -254,8 +274,8 @@ void LoadGame()
                 speedX = (rand() % RAND_X) - 1;
                 speedY = (rand() % RAND_Y) - 1;
 
-                if(speedX >= -2.0f && speedX <= 2.0f) speedX = 3.0f;
-                if(speedY >= -2.01f && speedY <= 2.0f) speedY = -3.0f;
+                if(speedX >= -RAND_LIMIT_X && speedX <= RAND_LIMIT_X) speedX = RAND_LIMIT_X + 1;
+                if(speedY >= -RAND_LIMIT_Y && speedY <= RAND_LIMIT_Y) speedY = RAND_LIMIT_Y - 1;
 
                 speedX /= -100.0f;
                 speedY /= -100.0f;
@@ -298,6 +318,7 @@ void LoadGame()
                                 
             }
 
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
                 // Clear screen with a background color (optional)
                 SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);  // Black
                 SDL_RenderClear(renderer);
@@ -322,12 +343,12 @@ void LoadGame()
                 // Draw the ball rectangle
                 SDL_RenderFillRect(renderer, &ball);
 
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, a);
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
+                SDL_RenderFillRect(renderer, &score);
+
                 // Present the renderer to the screen
                 SDL_RenderPresent(renderer);
-
-                // Delay to control the frame rate (optional)
-                // SDL_Delay(0.5); // ~ --- FPS
-            
             
         }
 
@@ -341,4 +362,4 @@ int main(int argc, char* argv[]) {
     LoadGame();
 
     return 0;
-}
+} 
